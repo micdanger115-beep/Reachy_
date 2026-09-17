@@ -1,6 +1,24 @@
 # plan.md — Reachy Mini als "Telefon" (Handy-Webapp)
 
-Status: **ENTWURF – wartet auf Freigabe/Antworten des Nutzers**
+Status: **FREIGEGEBEN & umgesetzt** (erste Version gebaut)
+
+### Entscheidungen des Nutzers
+1. Cloud-Handshake ok (Audio danach lokal/P2P). → **Ja**
+2. "Reachy sagt, was ich spreche" = **Live-Durchleitung (Intercom)**.
+3. **Kamerabild** zusätzlich gewünscht → volle Telepräsenz.
+4. Hugging-Face-Konto vorhanden.
+
+### Verifizierte API-Fakten (aus SDK-Typdefinitionen 1.8.0)
+- `connectToHost()` liefert `handle.media`: `attachVideo(el)` (Video+Audio),
+  `robotStream`, `micStream`.
+- Reachy hören: `media.attachVideo(<video>)` + `reachy.setAudioMuted(false)`.
+- Intercom (Handy-Mikro → Roboter): `getUserMedia({audio})` +
+  `replaceTrack()` auf dem Audio-Sender aus `reachy._pc.getSenders()`
+  (SDK-Konstruktor-`enableMicrophone` ist **deprecated**; `mountHost`-
+  `enableMicrophone: true` gibt dem iframe nur Mikro-Rechte).
+- Lautstärke: `reachy.setVolume()` (Roboter-Speaker), lokal `<video>.volume`.
+- Kein `/animation`-Export in 1.8.0 → sicheres Zurückfahren via
+  `gotoTarget({ head: rpyToMatrix(0,0,0).flat(), … })`.
 
 ## 1. Was der Nutzer will (mein Verständnis)
 
