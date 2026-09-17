@@ -4,7 +4,7 @@ emoji: 📞
 colorFrom: blue
 colorTo: green
 sdk: static
-app_build_command: npm ci && npm run build
+app_build_command: npm ci --include=dev && npm run build
 app_file: dist/index.html
 pinned: false
 hf_oauth: true
