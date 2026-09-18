@@ -1,0 +1,87 @@
+name: Deploy to Hugging Face Space
+
+on:
+  push:
+    branches:
+      - main
+      - claude/laughing-bell-3sxhsv
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-hf-space
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Hugging Face Hub
+        run: pip install -U "huggingface_hub>=0.25"
+
+      - name: Deploy source to Space (HF builds it)
+        env:
+          # In GitHub: Settings -> Secrets and variables -> Actions
+          #   Secret   HF_TOKEN  = dein HF-Write-Token (Pflicht)
+          #   Variable HF_SPACE  = Space-Name (optional, Standard: reachy-telefon)
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::warning::HF_TOKEN-Secret ist noch nicht gesetzt."
+            echo "Bitte in GitHub unter Settings -> Secrets and variables -> Actions"
+            echo "ein Secret 'HF_TOKEN' mit einem HF-Write-Token anlegen und den"
+            echo "Workflow erneut ausfuehren (Actions -> Deploy to Hugging Face Space -> Run workflow)."
+            exit 0
+          fi
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+
+          token = os.environ["HF_TOKEN"]
+          space = os.environ.get("HF_SPACE") or "reachy-telefon"
+          api = HfApi(token=token)
+          user = api.whoami()["name"]
+          repo_id = f"{user}/{space}"
+
+          # Space bei Bedarf anlegen (idempotent), als statischer Space.
+          api.create_repo(
+              repo_id=repo_id,
+              repo_type="space",
+              space_sdk="static",
+              exist_ok=True,
+          )
+
+          # Nur den Quellcode hochladen; HF fuehrt app_build_command aus und
+          # serviert app_file (dist/index.html). Build-Artefakte und Dev-Dateien
+          # werden ausgelassen.
+          api.upload_folder(
+              folder_path=".",
+              repo_id=repo_id,
+              repo_type="space",
+              commit_message="Deploy from GitHub Actions",
+              ignore_patterns=[
+                  "node_modules/*",
+                  "dist/*",
+                  ".git/*",
+                  ".github/*",
+                  ".env*",
+                  "plan.md",
+                  "agents.local.md",
+                  "DEPLOY.md",
+              ],
+          )
+
+          print(f"::notice::Space aktualisiert: https://huggingface.co/spaces/{repo_id}")
+          print(f"::notice::App-URL: https://{user}-{space}.hf.space")
+          PY

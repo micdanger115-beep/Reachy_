@@ -1,4 +1,29 @@
-# Deployment auf einen Hugging-Face-Space (`hf` CLI)
+# Deployment auf einen Hugging-Face-Space
+
+## Empfohlen: automatisch per GitHub Action
+
+Der Workflow `.github/workflows/deploy-hf-space.yml` legt den Space bei Bedarf
+selbst an und lädt den Quellcode hoch; HF baut ihn dann. Einmalige Einrichtung:
+
+1. **HF-Write-Token** erstellen: https://huggingface.co/settings/tokens
+   (Type „Write", oder fein-granular mit Schreibrecht auf Spaces).
+2. In **GitHub** → Repo `Reachy_` → **Settings → Secrets and variables → Actions**:
+   - Tab **Secrets** → **New repository secret**: Name `HF_TOKEN`, Wert = dein Token.
+   - (Optional) Tab **Variables** → **New variable**: Name `HF_SPACE`, Wert = gewünschter
+     Space-Name (Standard, falls leer: `reachy-telefon`).
+3. **Actions** aktivieren (falls nötig) und den Workflow starten:
+   **Actions → „Deploy to Hugging Face Space" → Run workflow** – oder einfach den
+   nächsten Commit pushen.
+
+Danach läuft die App unter `https://<DEIN_USER>-<space>.hf.space`. Jeder weitere
+Push auf `main` bzw. den Feature-Branch deployt automatisch neu.
+
+> Der Token liegt nur als **verschlüsseltes GitHub-Secret** vor und ist im Log
+> nicht sichtbar.
+
+---
+
+## Alternative: manuell per `hf` CLI
 
 Die App ist ein **statischer** HF Space (`sdk: static`). Du pushst nur den
 **Quellcode** – Hugging Face führt selbst `app_build_command` aus
