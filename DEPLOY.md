@@ -35,30 +35,44 @@ Der HF-Login (OAuth) wird auf dem Space **automatisch** verdrahtet
 
 ---
 
+> **Wichtig:** Ein HF-seitiger **Static-Space-Build ist kostenpflichtig
+> (Credits)**. Deshalb bauen wir **lokal bzw. in CI** und laden nur die fertigen
+> Dateien aus `dist/` hoch – ein reiner Datei-Upload braucht keine Credits.
+> Lade daher **nicht** den Quellcode mit `app_build_command` hoch.
+
 ## Einmalige Schritte
 
 ```bash
 # 1) HF CLI installieren und einloggen
 #    Token mit WRITE-Rechten: https://huggingface.co/settings/tokens
 pip install -U "huggingface_hub[cli]"
-hf auth login          # Token einfügen; "Add token as git credential?" mit Yes bestätigen
+hf auth login          # Token einfügen
 
-# 2) Space anlegen (static SDK)
-hf repos create reachy-telefon --repo-type space --space-sdk static
-#    -> https://huggingface.co/spaces/<DEIN_USER>/reachy-telefon
-#    (Alternativ per Web-UI: New Space -> SDK "Static")
+# 2) App lokal bauen
+npm ci && npm run build     # erzeugt dist/
 
-# 3) Dieses Repo lokal holen (falls noch nicht vorhanden) und HF als Remote setzen
-git clone https://github.com/micdanger115-beep/Reachy_.git
-cd Reachy_
-git checkout claude/laughing-bell-3sxhsv
-git remote add space https://huggingface.co/spaces/<DEIN_USER>/reachy-telefon
+# 3) Static-Space-README neben die gebauten Dateien legen (ohne Build-Befehl!)
+cat > dist/README.md <<'MD'
+---
+title: Reachy Telefon
+emoji: "📞"
+sdk: static
+app_file: index.html
+hf_oauth: true
+hf_oauth_expiration_minutes: 43200
+tags:
+  - reachy_mini
+  - reachy_mini_js_app
+---
+Vorgebaute statische App.
+MD
 
-# 4) Quellcode auf den Space pushen (wird dort zum main-Branch)
-git push space claude/laughing-bell-3sxhsv:main
+# 4) Space anlegen (falls noch nicht vorhanden) und NUR dist/ hochladen
+hf repos create reachy-telefon --repo-type space --space-sdk static || true
+hf upload <DEIN_USER>/reachy-telefon ./dist . --repo-type space --delete "*"
 ```
 
-Nach dem Push baut HF automatisch. Die App läuft dann unter:
+Die App läuft dann unter:
 
 ```
 https://<DEIN_USER>-reachy-telefon.hf.space
@@ -67,8 +81,9 @@ https://<DEIN_USER>-reachy-telefon.hf.space
 ## Updates später
 
 ```bash
-# im lokalen Repo, nach neuen Commits:
-git push space claude/laughing-bell-3sxhsv:main
+npm ci && npm run build
+# dist/README.md wie oben neu erzeugen (falls nicht mehr vorhanden), dann:
+hf upload <DEIN_USER>/reachy-telefon ./dist . --repo-type space --delete "*"
 ```
 
 ---
@@ -85,6 +100,9 @@ git push space claude/laughing-bell-3sxhsv:main
 - [ ] Beim ersten Login ggf. die OAuth-App **autorisieren**.
 - [ ] In der App **„Mikro aktivieren"** antippen und den Browser-Mikro-Dialog
       erlauben.
+
+- [ ] **Kein HF-Build nötig**: Wir laden fertige Dateien hoch → der Space steht
+      sofort auf „Running" (kein „Building"), ohne Credits.
 
 ## Hinweis zum Datenfluss
 

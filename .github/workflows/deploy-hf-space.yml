@@ -21,15 +21,46 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build (in CI, damit HF nicht bauen muss -> keine HF-Credits noetig)
+        run: |
+          npm ci
+          npm run build
+
+      - name: Space-README neben die gebauten Dateien schreiben (statisch, ohne Build)
+        run: |
+          cat > dist/README.md <<'MD'
+          ---
+          title: Reachy Telefon
+          emoji: "📞"
+          colorFrom: blue
+          colorTo: green
+          sdk: static
+          app_file: index.html
+          pinned: false
+          hf_oauth: true
+          hf_oauth_expiration_minutes: 43200
+          short_description: Reachy Mini als Gegensprech-Telefon mit Kopfsteuerung.
+          tags:
+            - reachy_mini
+            - reachy_mini_js_app
+          ---
+
+          Vorgebaute statische App. Der Build laeuft in GitHub Actions; hier liegen
+          nur die fertigen Dateien, daher braucht der Space keinen (kostenpflichtigen)
+          Build-Schritt.
+          MD
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install Hugging Face Hub
-        run: pip install -U "huggingface_hub>=0.25"
-
-      - name: Deploy source to Space (HF builds it)
+      - name: Upload prebuilt dist to Space
         env:
           # In GitHub: Settings -> Secrets and variables -> Actions
           #   Secret   HF_TOKEN  = dein HF-Write-Token (Pflicht)
@@ -38,12 +69,10 @@ jobs:
           HF_SPACE: ${{ vars.HF_SPACE }}
         run: |
           if [ -z "$HF_TOKEN" ]; then
-            echo "::warning::HF_TOKEN-Secret ist noch nicht gesetzt."
-            echo "Bitte in GitHub unter Settings -> Secrets and variables -> Actions"
-            echo "ein Secret 'HF_TOKEN' mit einem HF-Write-Token anlegen und den"
-            echo "Workflow erneut ausfuehren (Actions -> Deploy to Hugging Face Space -> Run workflow)."
+            echo "::warning::HF_TOKEN-Secret ist noch nicht gesetzt. Deploy uebersprungen."
             exit 0
           fi
+          pip install -U "huggingface_hub>=0.25"
           python - <<'PY'
           import os
           from huggingface_hub import HfApi
@@ -62,24 +91,15 @@ jobs:
               exist_ok=True,
           )
 
-          # Nur den Quellcode hochladen; HF fuehrt app_build_command aus und
-          # serviert app_file (dist/index.html). Build-Artefakte und Dev-Dateien
-          # werden ausgelassen.
+          # Nur die fertig gebauten Dateien hochladen. delete_patterns raeumt
+          # alte Inhalte (z. B. eine frueher hochgeladene Quell-README mit
+          # Build-Befehl) weg, damit HF keinen Build mehr ausloest.
           api.upload_folder(
-              folder_path=".",
+              folder_path="dist",
               repo_id=repo_id,
               repo_type="space",
-              commit_message="Deploy from GitHub Actions",
-              ignore_patterns=[
-                  "node_modules/*",
-                  "dist/*",
-                  ".git/*",
-                  ".github/*",
-                  ".env*",
-                  "plan.md",
-                  "agents.local.md",
-                  "DEPLOY.md",
-              ],
+              commit_message="Deploy prebuilt static app from GitHub Actions",
+              delete_patterns=["*"],
           )
 
           print(f"::notice::Space aktualisiert: https://huggingface.co/spaces/{repo_id}")

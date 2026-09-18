@@ -4,7 +4,6 @@ emoji: 📞
 colorFrom: blue
 colorTo: green
 sdk: static
-app_build_command: npm ci --include=dev && npm run build
 app_file: dist/index.html
 pinned: false
 hf_oauth: true
@@ -55,14 +54,17 @@ VITE_HF_TOKEN=hf_dein_token
 VITE_HF_USERNAME=dein_handle
 ```
 
-## Build
+## Build & Deploy
 
 ```bash
 npm ci && npm run build   # erzeugt dist/
 ```
 
-Nur den Quellcode deployen – nicht `dist/` committen. Hugging Face führt
-`app_build_command` aus und serviert `app_file`.
+Deployment läuft über die **GitHub Action** (`.github/workflows/deploy-hf-space.yml`):
+Sie baut die App in CI und lädt **nur die fertigen Dateien aus `dist/`** auf den
+HF Space. So muss Hugging Face **nicht selbst bauen** – ein HF-seitiger Static-
+Build ist inzwischen **kostenpflichtig (Credits)**, ein reiner Datei-Upload nicht.
+`dist/` wird **nicht** committet. Details: siehe `DEPLOY.md`.
 
 ## Robotertyp
 
