@@ -66,6 +66,12 @@ HF Space. So muss Hugging Face **nicht selbst bauen** – ein HF-seitiger Static
 Build ist inzwischen **kostenpflichtig (Credits)**, ein reiner Datei-Upload nicht.
 `dist/` wird **nicht** committet. Details: siehe `DEPLOY.md`.
 
+## Weitere App in diesem Repository
+
+**[Reachy Claude](reachy_claude/README.md)** – mit Reachy sprechen und dabei
+Claude Code auf dem eigenen PC steuern (programmieren per Sprache, Reachy liest
+Claudes Erklärungen vor). Eigener Ordner `reachy_claude/`, unabhängig von dieser Webapp.
+
 ## Robotertyp
 
 Entwickelt für **Reachy Mini Wireless (CM4)**. Weil die Wireless-Variante
