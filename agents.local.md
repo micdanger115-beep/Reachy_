@@ -22,15 +22,6 @@
 - App-Ordner nicht von Hand anlegen – Referenz-Apps klonen/trimmen
 - Referenz-Apps: `reachy_mini_minimal_conversation` (Vanilla TS), `reachy_mini_emotions` (React 19 + MUI), `reachy_mini_telepresence` (Kamera/Media)
 
-## Projekte in diesem Repo
-- Root (`src/`, `index.html`): **Reachy Telefon** – JS-Webapp (Kopfsteuerung, Intercom, Kamera).
-- `reachy_claude/`: **Reachy Claude** – Sprache → Claude Code auf dem Windows-PC.
-  Nutzt die offizielle Python-Conversation-App (Profil + externes Tool, kein Fork),
-  PC-Dienst `claude-bridge`, optionaler Patch für Zuhör-Bewegung.
-  Einstieg: `reachy_claude/README.md` (§9 = Stand & nächste Schritte), `plan.md`, `SECURITY.md`.
-
 ## Präferenzen / Notizen
 - Sprache der Zusammenarbeit: Deutsch
-- PC des Nutzers: Windows; Reachy und PC im selben WLAN
-- Datensparsamkeit hat hohe Priorität (lokale Sprachverarbeitung)
-- Immer: Tests ausführen, aktuelle Patterns, Sicherheitsaspekte prüfen, alles dokumentieren
+- (weitere Notizen folgen)
